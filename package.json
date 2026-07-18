@@ -1,0 +1,23 @@
+{
+  "name": "com.sipvlib.sound",
+  "version": "1.0.0",
+  "displayName": "SiPVLib Sound",
+  "description": "A central SoundManager for music, SFX, and ambience playback with AudioMixer channel volume/mute control, ConfigSoundGroup-based clip authoring, and UserDataManager-backed persistence of user volume settings.",
+  "unity": "6000.3",
+  "author": {
+    "name": "phajmvawnsix"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "sipvlib",
+    "sound"
+  ],
+  "dependencies": {
+    "com.sipvlib.config": "https://github.com/phajmvawnsix/com.sipvlib.config.git",
+    "com.sipvlib.debugging": "https://github.com/phajmvawnsix/com.sipvlib.debugging.git",
+    "com.sipvlib.event": "https://github.com/phajmvawnsix/com.sipvlib.event.git",
+    "com.sipvlib.userdata": "https://github.com/phajmvawnsix/com.sipvlib.userdata.git",
+    "com.sipvlib.utilities": "https://github.com/phajmvawnsix/com.sipvlib.utilities.git",
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
+  }
+}
