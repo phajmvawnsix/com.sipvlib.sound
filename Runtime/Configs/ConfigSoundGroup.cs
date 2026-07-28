@@ -14,15 +14,11 @@ namespace SiPVLib.Sound.Configs
         [DictionaryDrawerSettings(KeyLabel = "Id", ValueLabel = "Sound Data", DisplayMode = DictionaryDisplayOptions.ExpandedFoldout)]
 #endif
         private Dictionary<string, ConfigSoundData> _sfxClips, _musicClips, _ambienceClips;
-
-        #if UNITY_EDITOR
-
+        
         public Dictionary<string, ConfigSoundData> SfxClips => _sfxClips;
         public Dictionary<string, ConfigSoundData> MusicClips => _musicClips;
         public Dictionary<string, ConfigSoundData> AmbienceClips => _ambienceClips;
-
-        #endif
-
+        
         public ConfigSoundData GetSfxData(string id)
         {
             if (_sfxClips.TryGetValue(id, out var data))
