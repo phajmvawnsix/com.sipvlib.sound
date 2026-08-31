@@ -31,13 +31,13 @@ namespace SiPVLib.Sound.Configs
         {
             if (_soundDataCache.TryGetValue(soundId, out var data) && data != null)
             {
-                return data.AudioClip;
+                return data.GetAudioClip();
             }
-            
+
             CacheSoundGroups();
             if (_soundDataCache.TryGetValue(soundId, out data) && data != null)
             {
-                return data.AudioClip;
+                return data.GetAudioClip();
             }
             return null;
         }

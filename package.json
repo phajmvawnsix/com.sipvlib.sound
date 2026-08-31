@@ -1,6 +1,6 @@
 {
   "name": "com.sipvlib.sound",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "displayName": "SiPVLib Sound",
   "description": "A central SoundManager for music, SFX, and ambience playback with AudioMixer channel volume/mute control, ConfigSoundGroup-based clip authoring, and UserDataManager-backed persistence of user volume settings.",
   "unity": "6000.3",
