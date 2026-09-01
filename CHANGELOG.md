@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2026-09-01
+
+`PlayMusic`/`PlaySfx`/`PlayAmbience` load their clip synchronously via `ConfigSoundData.GetAudioClip()`
+instead of fire-and-forget wrapping the async variant — blocks on first use if not preloaded, matching
+the sync/async split already established by `AssetConfig.GetAsset()`/`GetAssetAsync()`.
+
 ## [1.1.0] - 2026-08-31
 
 Detach audio assets from the APK: `ConfigSoundData` now holds an `AudioClipConfig` Id

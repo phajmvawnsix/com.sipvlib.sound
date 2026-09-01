@@ -237,8 +237,49 @@ namespace SiPVLib.Sound
 
         #region Playback Control
 
-        /// <summary>Plays a music track, stopping any currently playing music. Thin sync wrapper over <see cref="PlayMusicAsync"/> — the clip loads in the background if not already cached.</summary>
-        public void PlayMusic(string soundId, float fadeDuration = 0f) => PlayMusicAsync(soundId, fadeDuration).Forget();
+        /// <summary>Plays a music track, stopping any currently playing music. Sync clip load (blocks if not already cached/preloaded) — use <see cref="PlayMusicAsync"/> to avoid blocking.</summary>
+        public void PlayMusic(string soundId, float fadeDuration = 0f)
+        {
+            if (!_isInitialized)
+            {
+                CustomLog.LogWarning("[SoundManager] Not initialized.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(soundId))
+            {
+                CustomLog.LogWarning("[SoundManager] Sound ID is null or empty.");
+                return;
+            }
+
+            var soundData = GetSoundData(soundId, SoundType.Music);
+            var clip = soundData?.GetAudioClip();
+            if (clip == null)
+            {
+                CustomLog.LogWarning($"[SoundManager] Music '{soundId}' not found or has no clip.");
+                return;
+            }
+
+            // Stop current music
+            if (_musicSfxAudioSource.isPlaying)
+            {
+                _musicSfxAudioSource.Stop();
+            }
+
+            // Setup and play
+            _musicSfxAudioSource.clip = clip;
+            _musicSfxAudioSource.volume = GetEffectiveVolume(SoundType.Music) * soundData.Volume;
+            _musicSfxAudioSource.pitch = soundData.Pitch;
+            _musicSfxAudioSource.loop = true;
+            _musicSfxAudioSource.outputAudioMixerGroup = _channels[SoundType.Music].MixerGroup;
+            _musicSfxAudioSource.Play();
+
+            EventManager.Invoke(EventSoundStarted, new SoundPlayEvent
+            {
+                soundId = soundId,
+                soundType = SoundType.Music
+            });
+        }
 
         /// <summary>Plays a music track, stopping any currently playing music. Awaits the clip's AudioClipConfig asset load (no-op if already cached/preloaded).</summary>
         public async UniTask PlayMusicAsync(string soundId, float fadeDuration = 0f)
@@ -284,8 +325,42 @@ namespace SiPVLib.Sound
             });
         }
 
-        /// <summary>Plays a one-shot SFX sound. Thin sync wrapper over <see cref="PlaySfxAsync"/> — the clip loads in the background if not already cached.</summary>
-        public void PlaySfx(string soundId) => PlaySfxAsync(soundId).Forget();
+        /// <summary>Plays a one-shot SFX sound. Sync clip load (blocks if not already cached/preloaded) — use <see cref="PlaySfxAsync"/> to avoid blocking.</summary>
+        public void PlaySfx(string soundId)
+        {
+            if (!_isInitialized)
+            {
+                CustomLog.LogWarning("[SoundManager] Not initialized.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(soundId))
+            {
+                CustomLog.LogWarning("[SoundManager] Sound ID is null or empty.");
+                return;
+            }
+
+            var soundData = GetSoundData(soundId, SoundType.Sfx);
+            var clip = soundData?.GetAudioClip();
+            if (clip == null)
+            {
+                CustomLog.LogWarning($"[SoundManager] SFX '{soundId}' not found or has no clip.");
+                return;
+            }
+
+            _musicSfxAudioSource.clip = clip;
+            _musicSfxAudioSource.volume = GetEffectiveVolume(SoundType.Sfx) * soundData.Volume;
+            _musicSfxAudioSource.pitch = soundData.Pitch;
+            _musicSfxAudioSource.loop = false;
+            _musicSfxAudioSource.outputAudioMixerGroup = _channels[SoundType.Sfx].MixerGroup;
+            _musicSfxAudioSource.PlayOneShot(clip, _musicSfxAudioSource.volume);
+
+            EventManager.Invoke(EventSoundStarted, new SoundPlayEvent
+            {
+                soundId = soundId,
+                soundType = SoundType.Sfx
+            });
+        }
 
         /// <summary>Plays a one-shot SFX sound. Awaits the clip's AudioClipConfig asset load (no-op if already cached/preloaded).</summary>
         public async UniTask PlaySfxAsync(string soundId)
@@ -324,8 +399,59 @@ namespace SiPVLib.Sound
             });
         }
 
-        /// <summary>Plays an ambience sound (loop, can have multiple playing). Thin sync wrapper over <see cref="PlayAmbienceAsync"/> — the clip loads in the background if not already cached.</summary>
-        public void PlayAmbience(string soundId) => PlayAmbienceAsync(soundId).Forget();
+        /// <summary>Plays an ambience sound (loop, can have multiple playing). Sync clip load (blocks if not already cached/preloaded) — use <see cref="PlayAmbienceAsync"/> to avoid blocking.</summary>
+        public void PlayAmbience(string soundId)
+        {
+            if (!_isInitialized)
+            {
+                CustomLog.LogWarning("[SoundManager] Not initialized.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(soundId))
+            {
+                CustomLog.LogWarning("[SoundManager] Sound ID is null or empty.");
+                return;
+            }
+
+            // Don't play duplicate ambience
+            if (_ambienceSources.ContainsKey(soundId))
+            {
+                CustomLog.LogWarning($"[SoundManager] Ambience '{soundId}' is already playing.");
+                return;
+            }
+
+            // Check max ambience limit
+            if (_ambienceSources.Count >= _maxAmbienceSounds)
+            {
+                CustomLog.LogWarning($"[SoundManager] Max ambience sounds ({_maxAmbienceSounds}) reached.");
+                return;
+            }
+
+            var soundData = GetSoundData(soundId, SoundType.Ambience);
+            var clip = soundData?.GetAudioClip();
+            if (clip == null)
+            {
+                CustomLog.LogWarning($"[SoundManager] Ambience '{soundId}' not found or has no clip.");
+                return;
+            }
+
+            var ambienceSource = CreateAudioSource($"Ambience_{soundId}");
+            ambienceSource.clip = clip;
+            ambienceSource.volume = GetEffectiveVolume(SoundType.Ambience) * soundData.Volume;
+            ambienceSource.pitch = soundData.Pitch;
+            ambienceSource.loop = true;
+            ambienceSource.outputAudioMixerGroup = _channels[SoundType.Ambience].MixerGroup;
+            ambienceSource.Play();
+
+            _ambienceSources[soundId] = ambienceSource;
+
+            EventManager.Invoke(EventSoundStarted, new SoundPlayEvent
+            {
+                soundId = soundId,
+                soundType = SoundType.Ambience
+            });
+        }
 
         /// <summary>Plays an ambience sound (loop, can have multiple playing). Awaits the clip's AudioClipConfig asset load (no-op if already cached/preloaded).</summary>
         public async UniTask PlayAmbienceAsync(string soundId)
