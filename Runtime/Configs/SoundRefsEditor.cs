@@ -17,16 +17,7 @@ namespace SiPVLib.Sound.Configs
         private static Dictionary<string, ConfigSoundGroup> _soundGroupCache = new();
         private static Dictionary<string, ConfigSoundData> _soundDataCache = new();
         private static Dictionary<string, SoundType> _soundIdToTypeCache = new();
-        
-        /// <summary>Tracks modification times of ConfigSoundGroup assets to detect changes.</summary>
-        private static Dictionary<string, long> _configSoundGroupModTimes = new();
-        
-        /// <summary>Last check time to avoid excessive checks.</summary>
-        private static double _lastCheckTime = 0;
-        
-        /// <summary>Check interval in seconds for detecting changes.</summary>
-        private const double CHECK_INTERVAL = 0.5;
-        
+
         public static AudioClip GetSoundClip(string soundId)
         {
             if (_soundDataCache.TryGetValue(soundId, out var data) && data != null)
@@ -121,81 +112,6 @@ namespace SiPVLib.Sound.Configs
             _soundDataCache.Clear();
             _soundGroupCache.Clear();
             _soundIdToTypeCache.Clear();
-            _configSoundGroupModTimes.Clear();
-        }
-
-        /// <summary>
-        /// Checks if ConfigSoundGroup assets have been modified and invalidates cache if so.
-        /// Called automatically by editor initialization.
-        /// </summary>
-        private static void CheckForConfigChanges()
-        {
-            // Rate limit checks to avoid excessive scanning
-            if (EditorApplication.timeSinceStartup - _lastCheckTime < CHECK_INTERVAL)
-                return;
-
-            _lastCheckTime = EditorApplication.timeSinceStartup;
-
-            // Find all ConfigSoundGroup assets
-            var configGuids = AssetDatabase.FindAssets("t:ConfigSoundGroup");
-            bool anyChanged = false;
-
-            // Check if any ConfigSoundGroup has been modified
-            foreach (var guid in configGuids)
-            {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                if (string.IsNullOrEmpty(path)) continue;
-
-                // Get the modification time
-                var asset = AssetDatabase.LoadAssetAtPath<ConfigSoundGroup>(path);
-                if (asset == null) continue;
-
-                long currentModTime = asset.GetHashCode(); // Simplified change detection
-
-                if (_configSoundGroupModTimes.TryGetValue(path, out var lastModTime))
-                {
-                    // Check if the asset has changed
-                    if (currentModTime != lastModTime)
-                    {
-                        anyChanged = true;
-                        _configSoundGroupModTimes[path] = currentModTime;
-                    }
-                }
-                else
-                {
-                    // New asset found
-                    _configSoundGroupModTimes[path] = currentModTime;
-                    anyChanged = true;
-                }
-            }
-
-            // Remove tracking for deleted assets
-            var deletedPaths = _configSoundGroupModTimes.Keys
-                .Where(path => !AssetDatabase.FindAssets($"{System.IO.Path.GetFileNameWithoutExtension(path)} t:ConfigSoundGroup").Any())
-                .ToList();
-
-            foreach (var path in deletedPaths)
-            {
-                _configSoundGroupModTimes.Remove(path);
-                anyChanged = true;
-            }
-
-            // Invalidate cache if changes detected
-            if (anyChanged && _soundGroupCache.Count > 0)
-            {
-                ClearCache();
-            }
-        }
-
-        /// <summary>
-        /// Initializes the editor listener for automatic cache invalidation.
-        /// Registered via InitializeOnLoad to run on editor startup.
-        /// </summary>
-        [InitializeOnLoadMethod]
-        private static void InitializeEditorListener()
-        {
-            EditorApplication.update -= CheckForConfigChanges;
-            EditorApplication.update += CheckForConfigChanges;
         }
     }
 

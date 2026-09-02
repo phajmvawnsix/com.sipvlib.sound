@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2] - 2026-09-02
+
+Fix `SoundRefsEditor` background `EditorApplication.update` polling: every 0.5s, forever, regardless
+of Editor focus, it ran a full `AssetDatabase.FindAssets("t:ConfigSoundGroup")` scan plus a
+`LoadAssetAtPath` per result to detect changes — the main cause of Editor CPU/memory climbing and
+the machine getting laggy the longer the Editor stayed open. Cache invalidation is now purely
+event-driven via the existing `SoundRefsAssetProcessor.OnPostprocessAllAssets`.
+
 ## [1.1.1] - 2026-09-01
 
 `PlayMusic`/`PlaySfx`/`PlayAmbience` load their clip synchronously via `ConfigSoundData.GetAudioClip()`
