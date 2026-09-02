@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3] - 2026-09-02
+
+`ConfigSoundAttributeDrawer` rebuilt its sound-id list on every repaint — a LINQ filter, a `Sort()`
+and a `ToArray()` per frame, per `[ConfigSound]` field. The list is now built once per cache
+generation, tracked by the new `SoundRefsEditor.CacheVersion` (bumped whenever the sound cache is
+populated or cleared).
+
 ## [1.1.2] - 2026-09-02
 
 Fix `SoundRefsEditor` background `EditorApplication.update` polling: every 0.5s, forever, regardless

@@ -18,6 +18,12 @@ namespace SiPVLib.Sound.Configs
         private static Dictionary<string, ConfigSoundData> _soundDataCache = new();
         private static Dictionary<string, SoundType> _soundIdToTypeCache = new();
 
+        /// <summary>
+        /// Bumped on every cache invalidation. Attribute drawers run per repaint, so they cache the
+        /// id list they build and only rebuild it when this changes.
+        /// </summary>
+        public static int CacheVersion { get; private set; }
+
         public static AudioClip GetSoundClip(string soundId)
         {
             if (_soundDataCache.TryGetValue(soundId, out var data) && data != null)
@@ -105,6 +111,8 @@ namespace SiPVLib.Sound.Configs
                     _soundIdToTypeCache[ambience.Key] = SoundType.Ambience;
                 }
             }
+
+            CacheVersion++;
         }
 
         public static void ClearCache()
@@ -112,6 +120,7 @@ namespace SiPVLib.Sound.Configs
             _soundDataCache.Clear();
             _soundGroupCache.Clear();
             _soundIdToTypeCache.Clear();
+            CacheVersion++;
         }
     }
 
