@@ -1,7 +1,5 @@
 using SiPVLib.Sound.Configs;
-#if ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
+using Alchemy.Inspector;
 using UnityEngine;
 
 namespace SiPVLib.Sound.Utilities
@@ -28,14 +26,10 @@ namespace SiPVLib.Sound.Utilities
 
         [Header("Fade Settings")]
         [SerializeField] private bool _useFadeIn = false;
-#if ODIN_INSPECTOR
         [ShowIf(nameof(_useFadeIn))]
-#endif
         [SerializeField] [Range(0f, 5f)] private float _fadeInDuration = 1f;
         [SerializeField] private bool _useFadeOut = false;
-#if ODIN_INSPECTOR
         [ShowIf(nameof(_useFadeOut))]
-#endif
         [SerializeField] [Range(0f, 5f)] private float _fadeOutDuration = 1f;
 
         private bool _isPlaying = false;

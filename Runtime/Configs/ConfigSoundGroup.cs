@@ -1,24 +1,36 @@
+using System;
 using System.Collections.Generic;
 using SiPVLib.Config.Configs;
-#if ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
+using SiPVLib.Utilities.Serialization;
 using UnityEngine;
 
 namespace SiPVLib.Sound.Configs
 {
     public class ConfigSoundGroup : GameConfig
     {
-        [SerializeField]
-#if ODIN_INSPECTOR
-        [DictionaryDrawerSettings(KeyLabel = "Id", ValueLabel = "Sound Data", DisplayMode = DictionaryDisplayOptions.ExpandedFoldout)]
-#endif
-        private Dictionary<string, ConfigSoundData> _sfxClips, _musicClips, _ambienceClips;
-        
+        /// <summary>
+        /// Unity only serializes concrete, closed generic types, so the dictionary of sound entries
+        /// needs a named subclass rather than <c>SerializableDictionary&lt;string, ConfigSoundData&gt;</c>
+        /// used directly as a field type.
+        /// </summary>
+        [Serializable]
+        public class SoundDataDictionary : SerializableDictionary<string, ConfigSoundData>
+        {
+        }
+
+        [SerializeField, SerializableDictionary]
+        private SoundDataDictionary _sfxClips = new();
+
+        [SerializeField, SerializableDictionary]
+        private SoundDataDictionary _musicClips = new();
+
+        [SerializeField, SerializableDictionary]
+        private SoundDataDictionary _ambienceClips = new();
+
         public Dictionary<string, ConfigSoundData> SfxClips => _sfxClips;
         public Dictionary<string, ConfigSoundData> MusicClips => _musicClips;
         public Dictionary<string, ConfigSoundData> AmbienceClips => _ambienceClips;
-        
+
         public ConfigSoundData GetSfxData(string id)
         {
             if (_sfxClips.TryGetValue(id, out var data))

@@ -1,14 +1,18 @@
 using System;
+using UnityEngine;
 
 namespace SiPVLib.Sound.Configs
 {
     /// <summary>
     /// Runtime-safe attribute to reference a sound by storing only its Id in a string field.
     /// The accompanying editor drawer (in an Editor folder) provides rich UI, sound selection validation,
-    /// and optional filtering by SoundType when the Unity Editor is present (Odin Inspector required).
+    /// and optional filtering by SoundType when the Unity Editor is present.
+    ///
+    /// Derives from <see cref="PropertyAttribute"/> (a plain UnityEngine, not UnityEditor, type) —
+    /// required for <see cref="UnityEditor.PropertyDrawer.attribute"/> to resolve to this type.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class ConfigSoundAttribute : Attribute
+    public class ConfigSoundAttribute : PropertyAttribute
     {
         /// <summary>
         /// Optional sound type filter. When supplied, only sounds of this type are offered in the editor.

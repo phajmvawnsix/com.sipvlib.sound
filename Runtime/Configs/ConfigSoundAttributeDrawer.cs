@@ -1,28 +1,29 @@
-#if UNITY_EDITOR && ODIN_INSPECTOR
+#if UNITY_EDITOR
 
-using Sirenix.OdinInspector.Editor;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace SiPVLib.Sound.Configs.Editor
 {
     /// <summary>
-    /// Odin Inspector attribute drawer for ConfigSoundAttribute.
-    /// Provides a dropdown UI for selecting sound IDs with optional SoundType filtering.
+    /// Attribute drawer for ConfigSoundAttribute. Provides a dropdown UI for selecting sound IDs
+    /// with optional SoundType filtering.
     /// </summary>
-    [DrawerPriority(DrawerPriorityLevel.SuperPriority)]
-    public class ConfigSoundAttributeDrawer : OdinAttributeDrawer<ConfigSoundAttribute, string>
+    [CustomPropertyDrawer(typeof(ConfigSoundAttribute))]
+    public class ConfigSoundAttributeDrawer : PropertyDrawer
     {
-        // DrawPropertyLayout runs on every repaint, so the filtered+sorted id list and its display
-        // array are built once per cache generation rather than per frame.
+        // OnGUI runs on every repaint, so the filtered+sorted id list and its display array are
+        // built once per cache generation rather than per frame.
         private string[] _displayOptions;
-        private System.Collections.Generic.List<string> _availableSounds;
+        private List<string> _availableSounds;
         private int _cachedVersion = -1;
 
-        protected override void DrawPropertyLayout(GUIContent label)
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var soundId = ValueEntry.SmartValue;
-            var attribute = Attribute;
+            var soundId = property.stringValue;
+            var attribute = (ConfigSoundAttribute) base.attribute;
 
             // Optional SoundType filtering
             SoundType? filterType = attribute?.SoundTypeFilter;
@@ -38,28 +39,21 @@ namespace SiPVLib.Sound.Configs.Editor
 
             var availableSounds = _availableSounds;
 
-            // Draw as dropdown or text field
-            GUILayout.BeginHorizontal();
+            EditorGUI.BeginProperty(position, label, property);
 
-            if (label != null)
-            {
-                GUILayout.Label(label, GUILayout.Width(EditorGUIUtility.labelWidth - 4));
-            }
+            var fieldRect = EditorGUI.PrefixLabel(position, label);
 
             var selectedIndex = availableSounds.IndexOf(soundId);
-
-            var newIndex = EditorGUILayout.Popup(selectedIndex >= 0 ? selectedIndex : 0, _displayOptions);
+            var newIndex = EditorGUI.Popup(fieldRect, selectedIndex >= 0 ? selectedIndex : 0, _displayOptions);
 
             if (newIndex >= 0 && newIndex < availableSounds.Count)
             {
-                ValueEntry.SmartValue = availableSounds[newIndex];
+                property.stringValue = availableSounds[newIndex];
             }
 
-            GUILayout.EndHorizontal();
+            EditorGUI.EndProperty();
         }
     }
 }
 
 #endif
-
-

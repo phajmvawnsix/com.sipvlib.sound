@@ -1,7 +1,5 @@
 using SiPVLib.Sound.Configs;
-#if ODIN_INSPECTOR
-using Sirenix.OdinInspector;
-#endif
+using Alchemy.Inspector;
 using UnityEngine;
 
 namespace SiPVLib.Sound.Utilities
@@ -24,9 +22,7 @@ namespace SiPVLib.Sound.Utilities
 
         [Header("Advanced")]
         [SerializeField] private bool _randomizePitch = false;
-#if ODIN_INSPECTOR
         [ShowIf(nameof(_randomizePitch))]
-#endif
         [SerializeField] [Range(0f, 1f)] private float _randomPitchAmount = 0.1f;
 
         private float _currentVolume = 1f;
